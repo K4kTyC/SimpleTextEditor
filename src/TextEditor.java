@@ -2,6 +2,7 @@ package src;
 
 import javax.swing.*;
 import java.awt.*;
+import java.awt.event.KeyEvent;
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
@@ -109,9 +110,11 @@ public class TextEditor extends JFrame {
 
         JMenu fileMenu = new JMenu("File");
         fileMenu.setName("MenuFile");
+        fileMenu.setMnemonic(KeyEvent.VK_F);
 
         JMenuItem openMenuItem = new JMenuItem("Open");
         openMenuItem.setName("MenuOpen");
+        openMenuItem.setMnemonic(KeyEvent.VK_O);
         openMenuItem.addActionListener(event -> {
             /*textArea.setText(null);
             String fileName = textField.getText();
@@ -125,6 +128,7 @@ public class TextEditor extends JFrame {
 
         JMenuItem saveMenuItem = new JMenuItem("Save");
         saveMenuItem.setName("MenuSave");
+        saveMenuItem.setMnemonic(KeyEvent.VK_S);
         saveMenuItem.addActionListener(event -> {
             /*String fileName = textField.getText();
             File targetFile = new File(fileName);
@@ -138,6 +142,7 @@ public class TextEditor extends JFrame {
 
         JMenuItem exitMenuItem = new JMenuItem("Exit");
         exitMenuItem.setName("MenuExit");
+        exitMenuItem.setMnemonic(KeyEvent.VK_X);
         exitMenuItem.addActionListener(event -> dispose());
 
         fileMenu.add(openMenuItem);
@@ -147,6 +152,7 @@ public class TextEditor extends JFrame {
 
         JMenu searchMenu = new JMenu("Search");
         searchMenu.setName("MenuSearch");
+        searchMenu.setMnemonic(KeyEvent.VK_S);
 
         JMenuItem startSearchMenuItem = new JMenuItem("Start search");
         startSearchMenuItem.setName("MenuStartSearch");
