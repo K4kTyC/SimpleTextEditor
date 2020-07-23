@@ -1,6 +1,8 @@
 package src;
 
 import javax.swing.*;
+import javax.swing.filechooser.FileNameExtensionFilter;
+import javax.swing.filechooser.FileSystemView;
 import java.awt.*;
 import java.awt.event.KeyEvent;
 import java.io.File;
@@ -26,32 +28,45 @@ public class TextEditor extends JFrame {
         JScrollPane scrollableTextArea = new JScrollPane(textArea);
         scrollableTextArea.setName("ScrollPane");
 
+        JFileChooser jfc = new JFileChooser(FileSystemView.getFileSystemView().getHomeDirectory());
+        jfc.setName("FileChooser");
+        jfc.setAcceptAllFileFilterUsed(false);
+        FileNameExtensionFilter filter = new FileNameExtensionFilter("TXT files", "txt");
+        jfc.addChoosableFileFilter(filter);
+
         JButton openButton = new JButton(new ImageIcon("res/icons/openIcon.png"));
         openButton.setName("OpenButton");
         openButton.setPreferredSize(new Dimension(38, 38));
         openButton.addActionListener(event -> {
-            /*textArea.setText(null);
-            String fileName = textField.getText();
-            try {
-                String dataFromFile = new String(Files.readAllBytes(Paths.get(fileName)));
-                textArea.setText(dataFromFile);
-            } catch (IOException ioException) {
-                System.out.println("Error: " + ioException.getMessage());
-            }*/
+            int returnValue = jfc.showOpenDialog(null);
+            if (returnValue == JFileChooser.APPROVE_OPTION) {
+                try {
+                    String dataFromFile = new String(Files.readAllBytes(Paths.get(jfc.getSelectedFile().getAbsolutePath())));
+                    textArea.setText(dataFromFile);
+                } catch (IOException ioException) {
+                    System.out.println("Error: " + ioException.getMessage());
+                }
+            }
         });
 
         JButton saveButton = new JButton(new ImageIcon("res/icons/saveIcon.png"));
         saveButton.setName("SaveButton");
         saveButton.setPreferredSize(new Dimension(38, 38));
         saveButton.addActionListener(event -> {
-            /*String fileName = textField.getText();
-            File targetFile = new File(fileName);
-            String dataToFile = textArea.getText();
-            try (FileWriter writer = new FileWriter(targetFile)) {
-                writer.write(dataToFile);
-            } catch (IOException ioException) {
-                System.out.println("Error: " + ioException.getMessage());
-            }*/
+            int returnValue = jfc.showSaveDialog(null);
+            if (returnValue == JFileChooser.APPROVE_OPTION) {
+                String filePath = jfc.getSelectedFile().getAbsolutePath();
+                if (!".txt".equals(filePath.substring(filePath.length() - 4))) {
+                    filePath += ".txt";
+                }
+                File targetFile = new File(filePath);
+                String dataToFile = textArea.getText();
+                try (FileWriter writer = new FileWriter(targetFile)) {
+                    writer.write(dataToFile);
+                } catch (IOException ioException) {
+                    System.out.println("Error: " + ioException.getMessage());
+                }
+            }
         });
 
         JTextField searchField = new JTextField();
@@ -116,28 +131,35 @@ public class TextEditor extends JFrame {
         openMenuItem.setName("MenuOpen");
         openMenuItem.setMnemonic(KeyEvent.VK_O);
         openMenuItem.addActionListener(event -> {
-            /*textArea.setText(null);
-            String fileName = textField.getText();
-            try {
-                String dataFromFile = new String(Files.readAllBytes(Paths.get(fileName)));
-                textArea.setText(dataFromFile);
-            } catch (IOException ioException) {
-                System.out.println("Error: " + ioException.getMessage());
-            }*/
+            int returnValue = jfc.showOpenDialog(null);
+            if (returnValue == JFileChooser.APPROVE_OPTION) {
+                try {
+                    String dataFromFile = new String(Files.readAllBytes(Paths.get(jfc.getSelectedFile().getAbsolutePath())));
+                    textArea.setText(dataFromFile);
+                } catch (IOException ioException) {
+                    System.out.println("Error: " + ioException.getMessage());
+                }
+            }
         });
 
         JMenuItem saveMenuItem = new JMenuItem("Save");
         saveMenuItem.setName("MenuSave");
         saveMenuItem.setMnemonic(KeyEvent.VK_S);
         saveMenuItem.addActionListener(event -> {
-            /*String fileName = textField.getText();
-            File targetFile = new File(fileName);
-            String dataToFile = textArea.getText();
-            try (FileWriter writer = new FileWriter(targetFile)) {
-                writer.write(dataToFile);
-            } catch (IOException ioException) {
-                System.out.println("Error: " + ioException.getMessage());
-            }*/
+            int returnValue = jfc.showSaveDialog(null);
+            if (returnValue == JFileChooser.APPROVE_OPTION) {
+                String filePath = jfc.getSelectedFile().getAbsolutePath();
+                if (!".txt".equals(filePath.substring(filePath.length() - 4))) {
+                    filePath += ".txt";
+                }
+                File targetFile = new File(filePath);
+                String dataToFile = textArea.getText();
+                try (FileWriter writer = new FileWriter(targetFile)) {
+                    writer.write(dataToFile);
+                } catch (IOException ioException) {
+                    System.out.println("Error: " + ioException.getMessage());
+                }
+            }
         });
 
         JMenuItem exitMenuItem = new JMenuItem("Exit");
