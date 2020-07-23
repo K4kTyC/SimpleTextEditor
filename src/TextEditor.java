@@ -25,10 +25,10 @@ public class TextEditor extends JFrame {
         JScrollPane scrollableTextArea = new JScrollPane(textArea);
         scrollableTextArea.setName("ScrollPane");
 
-        JButton loadButton = new JButton(new ImageIcon("res/icons/folderIcon.png"));
-        loadButton.setName("LoadButton");
-        loadButton.setPreferredSize(new Dimension(38, 38));
-        loadButton.addActionListener(event -> {
+        JButton openButton = new JButton(new ImageIcon("res/icons/openIcon.png"));
+        openButton.setName("OpenButton");
+        openButton.setPreferredSize(new Dimension(38, 38));
+        openButton.addActionListener(event -> {
             /*textArea.setText(null);
             String fileName = textField.getText();
             try {
@@ -84,7 +84,7 @@ public class TextEditor extends JFrame {
         JPanel filePane = new JPanel();
         filePane.setLayout(new BoxLayout(filePane, BoxLayout.LINE_AXIS));
         filePane.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
-        filePane.add(loadButton);
+        filePane.add(openButton);
         filePane.add(Box.createRigidArea(new Dimension(10, 0)));
         filePane.add(saveButton);
         filePane.add(Box.createRigidArea(new Dimension(10, 0)));
@@ -106,12 +106,13 @@ public class TextEditor extends JFrame {
 
         JMenuBar menuBar = new JMenuBar();
         setJMenuBar(menuBar);
+
         JMenu fileMenu = new JMenu("File");
         fileMenu.setName("MenuFile");
 
-        JMenuItem loadMenuItem = new JMenuItem("Load");
-        loadMenuItem.setName("MenuLoad");
-        loadMenuItem.addActionListener(event -> {
+        JMenuItem openMenuItem = new JMenuItem("Open");
+        openMenuItem.setName("MenuOpen");
+        openMenuItem.addActionListener(event -> {
             /*textArea.setText(null);
             String fileName = textField.getText();
             try {
@@ -139,12 +140,45 @@ public class TextEditor extends JFrame {
         exitMenuItem.setName("MenuExit");
         exitMenuItem.addActionListener(event -> dispose());
 
-        fileMenu.add(loadMenuItem);
+        fileMenu.add(openMenuItem);
         fileMenu.add(saveMenuItem);
         fileMenu.addSeparator();
         fileMenu.add(exitMenuItem);
 
+        JMenu searchMenu = new JMenu("Search");
+        searchMenu.setName("MenuSearch");
+
+        JMenuItem startSearchMenuItem = new JMenuItem("Start search");
+        startSearchMenuItem.setName("MenuStartSearch");
+        startSearchMenuItem.addActionListener(event -> {
+            //
+        });
+
+        JMenuItem prevMatchMenuItem = new JMenuItem("Previous match");
+        prevMatchMenuItem.setName("MenuPreviousMatch");
+        prevMatchMenuItem.addActionListener(event -> {
+            //
+        });
+
+        JMenuItem nextMatchMenuItem = new JMenuItem("Next match");
+        nextMatchMenuItem.setName("MenuNextMatch");
+        nextMatchMenuItem.addActionListener(event -> {
+            //
+        });
+
+        JMenuItem useRegexMenuItem = new JMenuItem("Use regular expressions");
+        useRegexMenuItem.setName("MenuUseRegExp");
+        useRegexMenuItem.addActionListener(event -> {
+            //
+        });
+
+        searchMenu.add(startSearchMenuItem);
+        searchMenu.add(prevMatchMenuItem);
+        searchMenu.add(nextMatchMenuItem);
+        searchMenu.add(useRegexMenuItem);
+
         menuBar.add(fileMenu);
+        menuBar.add(searchMenu);
 
 
         add(filePane, BorderLayout.PAGE_START);
