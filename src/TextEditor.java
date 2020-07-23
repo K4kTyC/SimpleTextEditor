@@ -29,23 +29,9 @@ public class TextEditor extends JFrame {
         JScrollPane scrollableTextArea = new JScrollPane(textArea);
         scrollableTextArea.setName("ScrollPane");
 
-        JButton saveButton = new JButton("Save");
-        saveButton.setName("SaveButton");
-        saveButton.setPreferredSize(new Dimension(100, 30));
-        saveButton.addActionListener(event -> {
-            String fileName = textField.getText();
-            File targetFile = new File(fileName);
-            String dataToFile = textArea.getText();
-            try (FileWriter writer = new FileWriter(targetFile)) {
-                writer.write(dataToFile);
-            } catch (IOException ioException) {
-                System.out.println("Error: " + ioException.getMessage());
-            }
-        });
-
-        JButton loadButton = new JButton("Load");
+        JButton loadButton = new JButton(new ImageIcon("res/icons/folderIcon.png"));
         loadButton.setName("LoadButton");
-        loadButton.setPreferredSize(new Dimension(100, 30));
+        loadButton.setPreferredSize(new Dimension(38, 38));
         loadButton.addActionListener(event -> {
             textArea.setText(null);
             String fileName = textField.getText();
@@ -57,14 +43,28 @@ public class TextEditor extends JFrame {
             }
         });
 
+        JButton saveButton = new JButton(new ImageIcon("res/icons/saveIcon.png"));
+        saveButton.setName("SaveButton");
+        saveButton.setPreferredSize(new Dimension(38, 38));
+        saveButton.addActionListener(event -> {
+            String fileName = textField.getText();
+            File targetFile = new File(fileName);
+            String dataToFile = textArea.getText();
+            try (FileWriter writer = new FileWriter(targetFile)) {
+                writer.write(dataToFile);
+            } catch (IOException ioException) {
+                System.out.println("Error: " + ioException.getMessage());
+            }
+        });
+
         JPanel filePane = new JPanel();
         filePane.setLayout(new BoxLayout(filePane, BoxLayout.LINE_AXIS));
         filePane.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
-        filePane.add(textField);
+        filePane.add(loadButton);
         filePane.add(Box.createRigidArea(new Dimension(10, 0)));
         filePane.add(saveButton);
         filePane.add(Box.createRigidArea(new Dimension(10, 0)));
-        filePane.add(loadButton);
+        filePane.add(textField);
 
         JPanel textPane = new JPanel();
         textPane.setLayout(new BorderLayout());
