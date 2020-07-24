@@ -22,7 +22,8 @@ public class TextEditor extends JFrame {
     private boolean isTextChanged = false;
     private String text;
     private String searchText;
-    private List<Integer> searchResultIndexes = new ArrayList<>();
+    private final List<Integer> searchResultIndexes = new ArrayList<>();
+    private final List<Integer> searchResultLength = new ArrayList<>();
     private int iterator = 0;
     private boolean useRegex = false;
 
@@ -106,13 +107,14 @@ public class TextEditor extends JFrame {
                         Matcher matcher = pattern.matcher(text);
                         while (matcher.find()) {
                             searchResultIndexes.add(matcher.start());
-                            //TODO fix found substring's length
+                            searchResultLength.add(matcher.end() - matcher.start());
                         }
                     } else {
                         int occurrenceIndex = text.indexOf(searchText);
                         int indexForSubString = occurrenceIndex;
                         while (indexForSubString != -1) {
                             searchResultIndexes.add(occurrenceIndex);
+                            searchResultLength.add(searchText.length());
                             String searchSubString = text.substring(occurrenceIndex + searchText.length());
                             indexForSubString = searchSubString.indexOf(searchText);
                             occurrenceIndex = indexForSubString + text.length() - searchSubString.length();
@@ -122,8 +124,8 @@ public class TextEditor extends JFrame {
                 }
                 if (!searchResultIndexes.isEmpty()) {
                     int index = searchResultIndexes.get(iterator = 0);
-                    textArea.setCaretPosition(index + searchText.length());
-                    textArea.select(index, index + searchText.length());
+                    textArea.setCaretPosition(index + searchResultLength.get(iterator));
+                    textArea.select(index, index + searchResultLength.get(iterator));
                     textArea.grabFocus();
                 }
             }
@@ -139,8 +141,8 @@ public class TextEditor extends JFrame {
                     iterator = searchResultIndexes.size();
                 }
                 index = searchResultIndexes.get(--iterator);
-                textArea.setCaretPosition(index + searchText.length());
-                textArea.select(index, index + searchText.length());
+                textArea.setCaretPosition(index + searchResultLength.get(iterator));
+                textArea.select(index, index + searchResultLength.get(iterator));
                 textArea.grabFocus();
             }
         });
@@ -155,8 +157,8 @@ public class TextEditor extends JFrame {
                     iterator = -1;
                 }
                 index = searchResultIndexes.get(++iterator);
-                textArea.setCaretPosition(index + searchText.length());
-                textArea.select(index, index + searchText.length());
+                textArea.setCaretPosition(index + searchResultLength.get(iterator));
+                textArea.select(index, index + searchResultLength.get(iterator));
                 textArea.grabFocus();
             }
         });
@@ -247,25 +249,74 @@ public class TextEditor extends JFrame {
         JMenuItem startSearchMenuItem = new JMenuItem("Start search");
         startSearchMenuItem.setName("MenuStartSearch");
         startSearchMenuItem.addActionListener(event -> {
-            //
+            searchText = searchField.getText();
+            if (!"".equals(searchText)) {
+                if (isTextChanged) {
+                    text = textArea.getText();
+                    if (useRegex) {
+                        Pattern pattern = Pattern.compile(searchText);
+                        Matcher matcher = pattern.matcher(text);
+                        while (matcher.find()) {
+                            searchResultIndexes.add(matcher.start());
+                            searchResultLength.add(matcher.end() - matcher.start());
+                        }
+                    } else {
+                        int occurrenceIndex = text.indexOf(searchText);
+                        int indexForSubString = occurrenceIndex;
+                        while (indexForSubString != -1) {
+                            searchResultIndexes.add(occurrenceIndex);
+                            searchResultLength.add(searchText.length());
+                            String searchSubString = text.substring(occurrenceIndex + searchText.length());
+                            indexForSubString = searchSubString.indexOf(searchText);
+                            occurrenceIndex = indexForSubString + text.length() - searchSubString.length();
+                        }
+                    }
+                    isTextChanged = false;
+                }
+                if (!searchResultIndexes.isEmpty()) {
+                    int index = searchResultIndexes.get(iterator = 0);
+                    textArea.setCaretPosition(index + searchResultLength.get(iterator));
+                    textArea.select(index, index + searchResultLength.get(iterator));
+                    textArea.grabFocus();
+                }
+            }
         });
 
         JMenuItem prevMatchMenuItem = new JMenuItem("Previous match");
         prevMatchMenuItem.setName("MenuPreviousMatch");
         prevMatchMenuItem.addActionListener(event -> {
-            //
+            if (!searchResultIndexes.isEmpty()) {
+                int index;
+                if (iterator - 1 < 0) {
+                    iterator = searchResultIndexes.size();
+                }
+                index = searchResultIndexes.get(--iterator);
+                textArea.setCaretPosition(index + searchResultLength.get(iterator));
+                textArea.select(index, index + searchResultLength.get(iterator));
+                textArea.grabFocus();
+            }
         });
 
         JMenuItem nextMatchMenuItem = new JMenuItem("Next match");
         nextMatchMenuItem.setName("MenuNextMatch");
         nextMatchMenuItem.addActionListener(event -> {
-            //
+            if (!searchResultIndexes.isEmpty()) {
+                int index;
+                if (iterator + 1 == searchResultIndexes.size()) {
+                    iterator = -1;
+                }
+                index = searchResultIndexes.get(++iterator);
+                textArea.setCaretPosition(index + searchResultLength.get(iterator));
+                textArea.select(index, index + searchResultLength.get(iterator));
+                textArea.grabFocus();
+            }
         });
 
         JMenuItem useRegexMenuItem = new JMenuItem("Use regular expressions");
         useRegexMenuItem.setName("MenuUseRegExp");
         useRegexMenuItem.addActionListener(event -> {
-            //
+            useRegexBox.doClick();
+            useRegexBox.requestFocusInWindow();
         });
 
         searchMenu.add(startSearchMenuItem);
@@ -289,12 +340,14 @@ public class TextEditor extends JFrame {
         public void insertUpdate(DocumentEvent documentEvent) {
             isTextChanged = true;
             searchResultIndexes.clear();
+            searchResultLength.clear();
         }
 
         @Override
         public void removeUpdate(DocumentEvent documentEvent) {
             isTextChanged = true;
             searchResultIndexes.clear();
+            searchResultLength.clear();
         }
 
         @Override
@@ -304,6 +357,8 @@ public class TextEditor extends JFrame {
 
     private void updateCheckbox() {
         useRegex = !useRegex;
+        isTextChanged = true;
         searchResultIndexes.clear();
+        searchResultLength.clear();
     }
 }
