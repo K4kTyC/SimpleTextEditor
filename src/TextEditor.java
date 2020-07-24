@@ -14,6 +14,8 @@ import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 public class TextEditor extends JFrame {
 
@@ -86,7 +88,6 @@ public class TextEditor extends JFrame {
             }
         });
 
-        boolean useRegex = false;
         JTextField searchField = new JTextField();
         searchField.setName("SearchField");
         searchField.setFont(font.deriveFont(18f));
@@ -101,7 +102,12 @@ public class TextEditor extends JFrame {
                 if (isTextChanged) {
                     text = textArea.getText();
                     if (useRegex) {
-
+                        Pattern pattern = Pattern.compile(searchText);
+                        Matcher matcher = pattern.matcher(text);
+                        while (matcher.find()) {
+                            searchResultIndexes.add(matcher.start());
+                            //TODO fix found substring's length
+                        }
                     } else {
                         int occurrenceIndex = text.indexOf(searchText);
                         int indexForSubString = occurrenceIndex;
@@ -298,5 +304,6 @@ public class TextEditor extends JFrame {
 
     private void updateCheckbox() {
         useRegex = !useRegex;
+        searchResultIndexes.clear();
     }
 }
