@@ -6,22 +6,22 @@ import javax.swing.event.DocumentListener;
 import javax.swing.filechooser.FileNameExtensionFilter;
 import javax.swing.filechooser.FileSystemView;
 import java.awt.*;
-import java.awt.event.ItemEvent;
-import java.awt.event.ItemListener;
 import java.awt.event.KeyEvent;
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Paths;
-import java.util.Deque;
-import java.util.LinkedList;
+import java.util.ArrayList;
+import java.util.List;
 
 public class TextEditor extends JFrame {
 
     private boolean isTextChanged = false;
     private String text;
-    private Deque<Integer> searchResultIndexes = new LinkedList<>();
+    private String searchText;
+    private List<Integer> searchResultIndexes = new ArrayList<>();
+    private int iterator = 0;
     private boolean useRegex = false;
 
     public TextEditor() {
@@ -96,28 +96,30 @@ public class TextEditor extends JFrame {
         searchButton.setName("StartSearchButton");
         searchButton.setPreferredSize(new Dimension(38, 38));
         searchButton.addActionListener(event -> {
-            String searchText = searchField.getText();
-            if (isTextChanged) {
-                text = textArea.getText();
-                searchResultIndexes.clear();
-                if (useRegex) {
+            searchText = searchField.getText();
+            if (!"".equals(searchText)) {
+                if (isTextChanged) {
+                    text = textArea.getText();
+                    if (useRegex) {
 
-                } else {
-                    int occurrenceIndex = text.indexOf(searchText);
-                    int indexForSubString = occurrenceIndex;
-                    while (indexForSubString != -1) {
-                        searchResultIndexes.offer(occurrenceIndex);
-                        String searchSubString = text.substring(occurrenceIndex + searchText.length());
-                        indexForSubString = searchSubString.indexOf(searchText);
-                        occurrenceIndex = indexForSubString + text.length() - searchSubString.length();
+                    } else {
+                        int occurrenceIndex = text.indexOf(searchText);
+                        int indexForSubString = occurrenceIndex;
+                        while (indexForSubString != -1) {
+                            searchResultIndexes.add(occurrenceIndex);
+                            String searchSubString = text.substring(occurrenceIndex + searchText.length());
+                            indexForSubString = searchSubString.indexOf(searchText);
+                            occurrenceIndex = indexForSubString + text.length() - searchSubString.length();
+                        }
                     }
+                    isTextChanged = false;
                 }
-                isTextChanged = false;
-            }
-            if (!searchResultIndexes.isEmpty()) {
-                textArea.setCaretPosition(searchResultIndexes.getFirst() + searchText.length());
-                textArea.select(searchResultIndexes.getFirst(), searchResultIndexes.getFirst() + searchText.length());
-                textArea.grabFocus();
+                if (!searchResultIndexes.isEmpty()) {
+                    int index = searchResultIndexes.get(iterator = 0);
+                    textArea.setCaretPosition(index + searchText.length());
+                    textArea.select(index, index + searchText.length());
+                    textArea.grabFocus();
+                }
             }
         });
 
@@ -125,38 +127,37 @@ public class TextEditor extends JFrame {
         prevMatchButton.setName("PreviousMatchButton");
         prevMatchButton.setPreferredSize(new Dimension(38, 38));
         prevMatchButton.addActionListener(event -> {
-            // search operation
+            if (!searchResultIndexes.isEmpty()) {
+                int index;
+                if (iterator - 1 < 0) {
+                    iterator = searchResultIndexes.size();
+                }
+                index = searchResultIndexes.get(--iterator);
+                textArea.setCaretPosition(index + searchText.length());
+                textArea.select(index, index + searchText.length());
+                textArea.grabFocus();
+            }
         });
 
         JButton nextMatchButton = new JButton(new ImageIcon("res/icons/nextMatchIcon.png"));
         nextMatchButton.setName("NextMatchButton");
         nextMatchButton.setPreferredSize(new Dimension(38, 38));
         nextMatchButton.addActionListener(event -> {
-            /*if (!isTextChanged) {
-                searchText = searchField.getText();
-                if (useRegex) {
-
-                } else {
-                    int firstOccurrenceIndex = searchSubString.indexOf(searchText) + (text.length() - searchSubString.length());
-                    if (firstOccurrenceIndex != -1) {
-                        searchSubString = text.substring(firstOccurrenceIndex + searchText.length());
-                        textArea.setCaretPosition(firstOccurrenceIndex + searchText.length());
-                        textArea.select(firstOccurrenceIndex, firstOccurrenceIndex + searchText.length());
-                        textArea.grabFocus();
-                    } else {
-                        searchSubString
-                    }
+            if (!searchResultIndexes.isEmpty()) {
+                int index;
+                if (iterator + 1 == searchResultIndexes.size()) {
+                    iterator = -1;
                 }
-            }*/
+                index = searchResultIndexes.get(++iterator);
+                textArea.setCaretPosition(index + searchText.length());
+                textArea.select(index, index + searchText.length());
+                textArea.grabFocus();
+            }
         });
 
         JCheckBox useRegexBox = new JCheckBox("Use regex");
         useRegexBox.setFont(font.deriveFont(18f));
-        useRegexBox.addItemListener(new ItemListener() {
-            public void itemStateChanged(ItemEvent e) {
-                updateCheckbox();
-            }
-        });
+        useRegexBox.addItemListener(e -> updateCheckbox());
 
         JPanel filePane = new JPanel();
         filePane.setLayout(new BoxLayout(filePane, BoxLayout.LINE_AXIS));
@@ -281,11 +282,13 @@ public class TextEditor extends JFrame {
         @Override
         public void insertUpdate(DocumentEvent documentEvent) {
             isTextChanged = true;
+            searchResultIndexes.clear();
         }
 
         @Override
         public void removeUpdate(DocumentEvent documentEvent) {
             isTextChanged = true;
+            searchResultIndexes.clear();
         }
 
         @Override
