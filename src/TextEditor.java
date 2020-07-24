@@ -94,42 +94,50 @@ public class TextEditor extends JFrame {
         searchField.setFont(font.deriveFont(18f));
         searchField.getDocument().addDocumentListener(new MyDocumentListener());
 
+        class TextFinder extends SwingWorker<Object, Object> {
+
+            @Override
+            protected Object doInBackground() {
+                searchText = searchField.getText();
+                if (!"".equals(searchText)) {
+                    if (isTextChanged) {
+                        text = textArea.getText();
+                        if (useRegex) {
+                            Pattern pattern = Pattern.compile(searchText);
+                            Matcher matcher = pattern.matcher(text);
+                            while (matcher.find()) {
+                                searchResultIndexes.add(matcher.start());
+                                searchResultLength.add(matcher.end() - matcher.start());
+                            }
+                        } else {
+                            int occurrenceIndex = text.indexOf(searchText);
+                            int indexForSubString = occurrenceIndex;
+                            while (indexForSubString != -1) {
+                                searchResultIndexes.add(occurrenceIndex);
+                                searchResultLength.add(searchText.length());
+                                String searchSubString = text.substring(occurrenceIndex + searchText.length());
+                                indexForSubString = searchSubString.indexOf(searchText);
+                                occurrenceIndex = indexForSubString + text.length() - searchSubString.length();
+                            }
+                        }
+                        isTextChanged = false;
+                    }
+                    if (!searchResultIndexes.isEmpty()) {
+                        int index = searchResultIndexes.get(iterator = 0);
+                        textArea.setCaretPosition(index + searchResultLength.get(iterator));
+                        textArea.select(index, index + searchResultLength.get(iterator));
+                        textArea.grabFocus();
+                    }
+                }
+
+                return null;
+            }
+        }
+
         JButton searchButton = new JButton(new ImageIcon("res/icons/searchIcon.png"));
         searchButton.setName("StartSearchButton");
         searchButton.setPreferredSize(new Dimension(38, 38));
-        searchButton.addActionListener(event -> {
-            searchText = searchField.getText();
-            if (!"".equals(searchText)) {
-                if (isTextChanged) {
-                    text = textArea.getText();
-                    if (useRegex) {
-                        Pattern pattern = Pattern.compile(searchText);
-                        Matcher matcher = pattern.matcher(text);
-                        while (matcher.find()) {
-                            searchResultIndexes.add(matcher.start());
-                            searchResultLength.add(matcher.end() - matcher.start());
-                        }
-                    } else {
-                        int occurrenceIndex = text.indexOf(searchText);
-                        int indexForSubString = occurrenceIndex;
-                        while (indexForSubString != -1) {
-                            searchResultIndexes.add(occurrenceIndex);
-                            searchResultLength.add(searchText.length());
-                            String searchSubString = text.substring(occurrenceIndex + searchText.length());
-                            indexForSubString = searchSubString.indexOf(searchText);
-                            occurrenceIndex = indexForSubString + text.length() - searchSubString.length();
-                        }
-                    }
-                    isTextChanged = false;
-                }
-                if (!searchResultIndexes.isEmpty()) {
-                    int index = searchResultIndexes.get(iterator = 0);
-                    textArea.setCaretPosition(index + searchResultLength.get(iterator));
-                    textArea.select(index, index + searchResultLength.get(iterator));
-                    textArea.grabFocus();
-                }
-            }
-        });
+        searchButton.addActionListener(event -> (new TextFinder()).execute());
 
         JButton prevMatchButton = new JButton(new ImageIcon("res/icons/prevMatchIcon.png"));
         prevMatchButton.setName("PreviousMatchButton");
@@ -248,39 +256,7 @@ public class TextEditor extends JFrame {
 
         JMenuItem startSearchMenuItem = new JMenuItem("Start search");
         startSearchMenuItem.setName("MenuStartSearch");
-        startSearchMenuItem.addActionListener(event -> {
-            searchText = searchField.getText();
-            if (!"".equals(searchText)) {
-                if (isTextChanged) {
-                    text = textArea.getText();
-                    if (useRegex) {
-                        Pattern pattern = Pattern.compile(searchText);
-                        Matcher matcher = pattern.matcher(text);
-                        while (matcher.find()) {
-                            searchResultIndexes.add(matcher.start());
-                            searchResultLength.add(matcher.end() - matcher.start());
-                        }
-                    } else {
-                        int occurrenceIndex = text.indexOf(searchText);
-                        int indexForSubString = occurrenceIndex;
-                        while (indexForSubString != -1) {
-                            searchResultIndexes.add(occurrenceIndex);
-                            searchResultLength.add(searchText.length());
-                            String searchSubString = text.substring(occurrenceIndex + searchText.length());
-                            indexForSubString = searchSubString.indexOf(searchText);
-                            occurrenceIndex = indexForSubString + text.length() - searchSubString.length();
-                        }
-                    }
-                    isTextChanged = false;
-                }
-                if (!searchResultIndexes.isEmpty()) {
-                    int index = searchResultIndexes.get(iterator = 0);
-                    textArea.setCaretPosition(index + searchResultLength.get(iterator));
-                    textArea.select(index, index + searchResultLength.get(iterator));
-                    textArea.grabFocus();
-                }
-            }
-        });
+        startSearchMenuItem.addActionListener(event -> (new TextFinder()).execute());
 
         JMenuItem prevMatchMenuItem = new JMenuItem("Previous match");
         prevMatchMenuItem.setName("MenuPreviousMatch");
@@ -330,8 +306,6 @@ public class TextEditor extends JFrame {
 
         add(filePane, BorderLayout.PAGE_START);
         add(textPane, BorderLayout.CENTER);
-
-        setVisible(true);
     }
 
     private class MyDocumentListener implements DocumentListener {
