@@ -1,9 +1,13 @@
 package src;
 
 import javax.swing.*;
+import javax.swing.event.DocumentEvent;
+import javax.swing.event.DocumentListener;
 import javax.swing.filechooser.FileNameExtensionFilter;
 import javax.swing.filechooser.FileSystemView;
 import java.awt.*;
+import java.awt.event.ItemEvent;
+import java.awt.event.ItemListener;
 import java.awt.event.KeyEvent;
 import java.io.File;
 import java.io.FileWriter;
@@ -13,7 +17,18 @@ import java.nio.file.Paths;
 
 public class TextEditor extends JFrame {
 
+    private boolean isTextChanged = false;
+    private String text;
+    private String searchText;
+    private String searchSubString;
+    private boolean useRegex = false;
+
     public TextEditor() {
+        super();
+        createGUI();
+    }
+
+    private void createGUI() {
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         setTitle("Simple Text Editor");
         setSize(600, 700);
@@ -24,6 +39,21 @@ public class TextEditor extends JFrame {
         JTextArea textArea = new JTextArea();
         textArea.setName("TextArea");
         textArea.setFont(font);
+        textArea.getDocument().addDocumentListener(new DocumentListener() {
+            @Override
+            public void insertUpdate(DocumentEvent documentEvent) {
+                isTextChanged = true;
+            }
+
+            @Override
+            public void removeUpdate(DocumentEvent documentEvent) {
+                isTextChanged = true;
+            }
+
+            @Override
+            public void changedUpdate(DocumentEvent documentEvent) {
+            }
+        });
 
         JScrollPane scrollableTextArea = new JScrollPane(textArea);
         scrollableTextArea.setName("ScrollPane");
@@ -69,6 +99,7 @@ public class TextEditor extends JFrame {
             }
         });
 
+        boolean useRegex = false;
         JTextField searchField = new JTextField();
         searchField.setName("SearchField");
         searchField.setFont(font.deriveFont(18f));
@@ -77,7 +108,23 @@ public class TextEditor extends JFrame {
         searchButton.setName("StartSearchButton");
         searchButton.setPreferredSize(new Dimension(38, 38));
         searchButton.addActionListener(event -> {
-            // search operation
+            if (isTextChanged) {
+                text = textArea.getText();
+                searchSubString = text;
+                isTextChanged = false;
+            }
+            searchText = searchField.getText();
+            if (useRegex) {
+
+            } else {
+                int firstOccurrenceIndex = searchSubString.indexOf(searchText);
+                if (firstOccurrenceIndex != -1) {
+                    searchSubString = searchText.substring(firstOccurrenceIndex + searchText.length());
+                    textArea.setCaretPosition(firstOccurrenceIndex + searchText.length());
+                    textArea.select(firstOccurrenceIndex, firstOccurrenceIndex + searchText.length());
+                    textArea.grabFocus();
+                }
+            }
         });
 
         JButton prevMatchButton = new JButton(new ImageIcon("res/icons/prevMatchIcon.png"));
@@ -96,6 +143,11 @@ public class TextEditor extends JFrame {
 
         JCheckBox useRegexBox = new JCheckBox("Use regex");
         useRegexBox.setFont(font.deriveFont(18f));
+        useRegexBox.addItemListener(new ItemListener() {
+            public void itemStateChanged(ItemEvent e) {
+                updateCheckbox();
+            }
+        });
 
         JPanel filePane = new JPanel();
         filePane.setLayout(new BoxLayout(filePane, BoxLayout.LINE_AXIS));
@@ -213,5 +265,9 @@ public class TextEditor extends JFrame {
         add(textPane, BorderLayout.CENTER);
 
         setVisible(true);
+    }
+
+    private void updateCheckbox() {
+        useRegex = !useRegex;
     }
 }
