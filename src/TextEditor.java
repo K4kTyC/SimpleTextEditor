@@ -41,23 +41,19 @@ public class TextEditor extends JFrame {
 
 
         JTextArea textArea = new JTextArea();
-        textArea.setName("TextArea");
         textArea.setFont(font);
         textArea.setLineWrap(true);
         textArea.setWrapStyleWord(true);
         textArea.getDocument().addDocumentListener(new MyDocumentListener());
 
         JScrollPane scrollableTextArea = new JScrollPane(textArea);
-        scrollableTextArea.setName("ScrollPane");
 
         JFileChooser jfc = new JFileChooser(FileSystemView.getFileSystemView().getHomeDirectory());
-        jfc.setName("FileChooser");
         jfc.setAcceptAllFileFilterUsed(false);
         FileNameExtensionFilter filter = new FileNameExtensionFilter("TXT files", "txt");
         jfc.addChoosableFileFilter(filter);
 
         JButton openButton = new JButton(new ImageIcon("res/icons/openIcon.png"));
-        openButton.setName("OpenButton");
         openButton.setPreferredSize(new Dimension(38, 38));
         openButton.addActionListener(event -> {
             int returnValue = jfc.showOpenDialog(null);
@@ -72,7 +68,6 @@ public class TextEditor extends JFrame {
         });
 
         JButton saveButton = new JButton(new ImageIcon("res/icons/saveIcon.png"));
-        saveButton.setName("SaveButton");
         saveButton.setPreferredSize(new Dimension(38, 38));
         saveButton.addActionListener(event -> {
             int returnValue = jfc.showSaveDialog(null);
@@ -92,7 +87,6 @@ public class TextEditor extends JFrame {
         });
 
         JTextField searchField = new JTextField();
-        searchField.setName("SearchField");
         searchField.setFont(font.deriveFont(18f));
         searchField.getDocument().addDocumentListener(new MyDocumentListener());
 
@@ -137,12 +131,10 @@ public class TextEditor extends JFrame {
         }
 
         JButton searchButton = new JButton(new ImageIcon("res/icons/searchIcon.png"));
-        searchButton.setName("StartSearchButton");
         searchButton.setPreferredSize(new Dimension(38, 38));
         searchButton.addActionListener(event -> (new TextFinder()).execute());
 
         JButton prevMatchButton = new JButton(new ImageIcon("res/icons/prevMatchIcon.png"));
-        prevMatchButton.setName("PreviousMatchButton");
         prevMatchButton.setPreferredSize(new Dimension(38, 38));
         prevMatchButton.addActionListener(event -> {
             if (!searchResultIndexes.isEmpty()) {
@@ -158,7 +150,6 @@ public class TextEditor extends JFrame {
         });
 
         JButton nextMatchButton = new JButton(new ImageIcon("res/icons/nextMatchIcon.png"));
-        nextMatchButton.setName("NextMatchButton");
         nextMatchButton.setPreferredSize(new Dimension(38, 38));
         nextMatchButton.addActionListener(event -> {
             if (!searchResultIndexes.isEmpty()) {
@@ -204,11 +195,9 @@ public class TextEditor extends JFrame {
         setJMenuBar(menuBar);
 
         JMenu fileMenu = new JMenu("File");
-        fileMenu.setName("MenuFile");
         fileMenu.setMnemonic(KeyEvent.VK_F);
 
         JMenuItem openMenuItem = new JMenuItem("Open");
-        openMenuItem.setName("MenuOpen");
         openMenuItem.setMnemonic(KeyEvent.VK_O);
         openMenuItem.addActionListener(event -> {
             int returnValue = jfc.showOpenDialog(null);
@@ -223,7 +212,6 @@ public class TextEditor extends JFrame {
         });
 
         JMenuItem saveMenuItem = new JMenuItem("Save");
-        saveMenuItem.setName("MenuSave");
         saveMenuItem.setMnemonic(KeyEvent.VK_S);
         saveMenuItem.addActionListener(event -> {
             int returnValue = jfc.showSaveDialog(null);
@@ -243,7 +231,6 @@ public class TextEditor extends JFrame {
         });
 
         JMenuItem exitMenuItem = new JMenuItem("Exit");
-        exitMenuItem.setName("MenuExit");
         exitMenuItem.setMnemonic(KeyEvent.VK_X);
         exitMenuItem.addActionListener(event -> dispose());
 
@@ -253,15 +240,12 @@ public class TextEditor extends JFrame {
         fileMenu.add(exitMenuItem);
 
         JMenu searchMenu = new JMenu("Search");
-        searchMenu.setName("MenuSearch");
         searchMenu.setMnemonic(KeyEvent.VK_S);
 
         JMenuItem startSearchMenuItem = new JMenuItem("Start search");
-        startSearchMenuItem.setName("MenuStartSearch");
         startSearchMenuItem.addActionListener(event -> (new TextFinder()).execute());
 
         JMenuItem prevMatchMenuItem = new JMenuItem("Previous match");
-        prevMatchMenuItem.setName("MenuPreviousMatch");
         prevMatchMenuItem.addActionListener(event -> {
             if (!searchResultIndexes.isEmpty()) {
                 int index;
@@ -276,7 +260,6 @@ public class TextEditor extends JFrame {
         });
 
         JMenuItem nextMatchMenuItem = new JMenuItem("Next match");
-        nextMatchMenuItem.setName("MenuNextMatch");
         nextMatchMenuItem.addActionListener(event -> {
             if (!searchResultIndexes.isEmpty()) {
                 int index;
@@ -291,7 +274,6 @@ public class TextEditor extends JFrame {
         });
 
         JMenuItem useRegexMenuItem = new JMenuItem("Use regular expressions");
-        useRegexMenuItem.setName("MenuUseRegExp");
         useRegexMenuItem.addActionListener(event -> {
             useRegexBox.doClick();
             useRegexBox.requestFocusInWindow();
