@@ -43,6 +43,8 @@ public class TextEditor extends JFrame {
         JTextArea textArea = new JTextArea();
         textArea.setName("TextArea");
         textArea.setFont(font);
+        textArea.setLineWrap(true);
+        textArea.setWrapStyleWord(true);
         textArea.getDocument().addDocumentListener(new MyDocumentListener());
 
         JScrollPane scrollableTextArea = new JScrollPane(textArea);
