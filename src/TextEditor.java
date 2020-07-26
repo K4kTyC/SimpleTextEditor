@@ -119,10 +119,8 @@ public class TextEditor extends JFrame {
                         isTextChanged = false;
                     }
                     if (!searchResultIndexes.isEmpty()) {
-                        int index = searchResultIndexes.get(iterator = 0);
-                        textArea.setCaretPosition(index + searchResultLength.get(iterator));
-                        textArea.select(index, index + searchResultLength.get(iterator));
-                        textArea.grabFocus();
+                        iterator = 0;
+                        selectFoundText(textArea);
                     }
                 }
 
@@ -138,14 +136,11 @@ public class TextEditor extends JFrame {
         prevMatchButton.setPreferredSize(new Dimension(38, 38));
         prevMatchButton.addActionListener(event -> {
             if (!searchResultIndexes.isEmpty()) {
-                int index;
                 if (iterator - 1 < 0) {
                     iterator = searchResultIndexes.size();
                 }
-                index = searchResultIndexes.get(--iterator);
-                textArea.setCaretPosition(index + searchResultLength.get(iterator));
-                textArea.select(index, index + searchResultLength.get(iterator));
-                textArea.grabFocus();
+                iterator--;
+                selectFoundText(textArea);
             }
         });
 
@@ -153,14 +148,11 @@ public class TextEditor extends JFrame {
         nextMatchButton.setPreferredSize(new Dimension(38, 38));
         nextMatchButton.addActionListener(event -> {
             if (!searchResultIndexes.isEmpty()) {
-                int index;
                 if (iterator + 1 == searchResultIndexes.size()) {
                     iterator = -1;
                 }
-                index = searchResultIndexes.get(++iterator);
-                textArea.setCaretPosition(index + searchResultLength.get(iterator));
-                textArea.select(index, index + searchResultLength.get(iterator));
-                textArea.grabFocus();
+                iterator++;
+                selectFoundText(textArea);
             }
         });
 
@@ -248,28 +240,22 @@ public class TextEditor extends JFrame {
         JMenuItem prevMatchMenuItem = new JMenuItem("Previous match");
         prevMatchMenuItem.addActionListener(event -> {
             if (!searchResultIndexes.isEmpty()) {
-                int index;
                 if (iterator - 1 < 0) {
                     iterator = searchResultIndexes.size();
                 }
-                index = searchResultIndexes.get(--iterator);
-                textArea.setCaretPosition(index + searchResultLength.get(iterator));
-                textArea.select(index, index + searchResultLength.get(iterator));
-                textArea.grabFocus();
+                iterator--;
+                selectFoundText(textArea);
             }
         });
 
         JMenuItem nextMatchMenuItem = new JMenuItem("Next match");
         nextMatchMenuItem.addActionListener(event -> {
             if (!searchResultIndexes.isEmpty()) {
-                int index;
                 if (iterator + 1 == searchResultIndexes.size()) {
                     iterator = -1;
                 }
-                index = searchResultIndexes.get(++iterator);
-                textArea.setCaretPosition(index + searchResultLength.get(iterator));
-                textArea.select(index, index + searchResultLength.get(iterator));
-                textArea.grabFocus();
+                iterator++;
+                selectFoundText(textArea);
             }
         });
 
@@ -318,5 +304,14 @@ public class TextEditor extends JFrame {
         isTextChanged = true;
         searchResultIndexes.clear();
         searchResultLength.clear();
+    }
+
+    private void selectFoundText(JTextArea textArea) {
+        int startIndex = searchResultIndexes.get(iterator);
+        int foundTextLength = searchResultLength.get(iterator);
+
+        textArea.setCaretPosition(startIndex + foundTextLength);
+        textArea.select(startIndex, startIndex + foundTextLength);
+        textArea.grabFocus();
     }
 }
