@@ -19,6 +19,19 @@ import java.util.regex.Pattern;
 
 public class TextEditor extends JFrame {
 
+    private Font font;
+    private JTextArea textArea;
+    private JFileChooser fileChooser;
+    private JButton openButton;
+    private JButton saveButton;
+    private JTextField searchField;
+    private JButton searchButton;
+    private JButton prevMatchButton;
+    private JButton nextMatchButton;
+    private JCheckBox useRegexBox;
+    private JPanel searchPane;
+    private JPanel textPane;
+
     private boolean isTextChanged = false;
     private String text;
     private String searchText;
@@ -37,10 +50,17 @@ public class TextEditor extends JFrame {
         setTitle("Simple Text Editor");
         setSize(600, 700);
         setLocation(600, 200);
-        Font font = new Font("Courier", Font.PLAIN, 16);
+        font = new Font("Courier", Font.PLAIN, 16);
 
+        initWorkAreaComponents();
+        initMenuBarComponents();
 
-        JTextArea textArea = new JTextArea();
+        add(searchPane, BorderLayout.PAGE_START);
+        add(textPane, BorderLayout.CENTER);
+    }
+
+    private void initWorkAreaComponents() {
+        textArea = new JTextArea();
         textArea.setFont(font);
         textArea.setLineWrap(true);
         textArea.setWrapStyleWord(true);
@@ -48,18 +68,18 @@ public class TextEditor extends JFrame {
 
         JScrollPane scrollableTextArea = new JScrollPane(textArea);
 
-        JFileChooser jfc = new JFileChooser(FileSystemView.getFileSystemView().getHomeDirectory());
-        jfc.setAcceptAllFileFilterUsed(false);
+        fileChooser = new JFileChooser(FileSystemView.getFileSystemView().getHomeDirectory());
+        fileChooser.setAcceptAllFileFilterUsed(false);
         FileNameExtensionFilter filter = new FileNameExtensionFilter("TXT files", "txt");
-        jfc.addChoosableFileFilter(filter);
+        fileChooser.addChoosableFileFilter(filter);
 
-        JButton openButton = new JButton(new ImageIcon("res/icons/openIcon.png"));
+        openButton = new JButton(new ImageIcon("res/icons/openIcon.png"));
         openButton.setPreferredSize(new Dimension(38, 38));
         openButton.addActionListener(event -> {
-            int returnValue = jfc.showOpenDialog(null);
+            int returnValue = fileChooser.showOpenDialog(null);
             if (returnValue == JFileChooser.APPROVE_OPTION) {
                 try {
-                    String dataFromFile = new String(Files.readAllBytes(Paths.get(jfc.getSelectedFile().getAbsolutePath())));
+                    String dataFromFile = new String(Files.readAllBytes(Paths.get(fileChooser.getSelectedFile().getAbsolutePath())));
                     textArea.setText(dataFromFile);
                 } catch (IOException ioException) {
                     System.out.println("Error: " + ioException.getMessage());
@@ -67,12 +87,12 @@ public class TextEditor extends JFrame {
             }
         });
 
-        JButton saveButton = new JButton(new ImageIcon("res/icons/saveIcon.png"));
+        saveButton = new JButton(new ImageIcon("res/icons/saveIcon.png"));
         saveButton.setPreferredSize(new Dimension(38, 38));
         saveButton.addActionListener(event -> {
-            int returnValue = jfc.showSaveDialog(null);
+            int returnValue = fileChooser.showSaveDialog(null);
             if (returnValue == JFileChooser.APPROVE_OPTION) {
-                String filePath = jfc.getSelectedFile().getAbsolutePath();
+                String filePath = fileChooser.getSelectedFile().getAbsolutePath();
                 if (!".txt".equals(filePath.substring(filePath.length() - 4))) {
                     filePath += ".txt";
                 }
@@ -86,53 +106,15 @@ public class TextEditor extends JFrame {
             }
         });
 
-        JTextField searchField = new JTextField();
+        searchField = new JTextField();
         searchField.setFont(font.deriveFont(18f));
         searchField.getDocument().addDocumentListener(new MyDocumentListener());
 
-        class TextFinder extends SwingWorker<Object, Object> {
-
-            @Override
-            protected Object doInBackground() {
-                searchText = searchField.getText();
-                if (!"".equals(searchText)) {
-                    if (isTextChanged) {
-                        text = textArea.getText();
-                        if (useRegex) {
-                            Pattern pattern = Pattern.compile(searchText);
-                            Matcher matcher = pattern.matcher(text);
-                            while (matcher.find()) {
-                                searchResultIndexes.add(matcher.start());
-                                searchResultLength.add(matcher.end() - matcher.start());
-                            }
-                        } else {
-                            int occurrenceIndex = text.indexOf(searchText);
-                            int indexForSubString = occurrenceIndex;
-                            while (indexForSubString != -1) {
-                                searchResultIndexes.add(occurrenceIndex);
-                                searchResultLength.add(searchText.length());
-                                String searchSubString = text.substring(occurrenceIndex + searchText.length());
-                                indexForSubString = searchSubString.indexOf(searchText);
-                                occurrenceIndex = indexForSubString + text.length() - searchSubString.length();
-                            }
-                        }
-                        isTextChanged = false;
-                    }
-                    if (!searchResultIndexes.isEmpty()) {
-                        iterator = 0;
-                        selectFoundText(textArea);
-                    }
-                }
-
-                return null;
-            }
-        }
-
-        JButton searchButton = new JButton(new ImageIcon("res/icons/searchIcon.png"));
+        searchButton = new JButton(new ImageIcon("res/icons/searchIcon.png"));
         searchButton.setPreferredSize(new Dimension(38, 38));
         searchButton.addActionListener(event -> (new TextFinder()).execute());
 
-        JButton prevMatchButton = new JButton(new ImageIcon("res/icons/prevMatchIcon.png"));
+        prevMatchButton = new JButton(new ImageIcon("res/icons/prevMatchIcon.png"));
         prevMatchButton.setPreferredSize(new Dimension(38, 38));
         prevMatchButton.addActionListener(event -> {
             if (!searchResultIndexes.isEmpty()) {
@@ -144,7 +126,7 @@ public class TextEditor extends JFrame {
             }
         });
 
-        JButton nextMatchButton = new JButton(new ImageIcon("res/icons/nextMatchIcon.png"));
+        nextMatchButton = new JButton(new ImageIcon("res/icons/nextMatchIcon.png"));
         nextMatchButton.setPreferredSize(new Dimension(38, 38));
         nextMatchButton.addActionListener(event -> {
             if (!searchResultIndexes.isEmpty()) {
@@ -156,33 +138,34 @@ public class TextEditor extends JFrame {
             }
         });
 
-        JCheckBox useRegexBox = new JCheckBox("Use regex");
+        useRegexBox = new JCheckBox("Use regex");
         useRegexBox.setFont(font.deriveFont(18f));
         useRegexBox.addItemListener(e -> updateCheckbox());
 
-        JPanel filePane = new JPanel();
-        filePane.setLayout(new BoxLayout(filePane, BoxLayout.LINE_AXIS));
-        filePane.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
-        filePane.add(openButton);
-        filePane.add(Box.createRigidArea(new Dimension(10, 0)));
-        filePane.add(saveButton);
-        filePane.add(Box.createRigidArea(new Dimension(10, 0)));
-        filePane.add(searchField);
-        filePane.add(Box.createRigidArea(new Dimension(10, 0)));
-        filePane.add(searchButton);
-        filePane.add(Box.createRigidArea(new Dimension(10, 0)));
-        filePane.add(prevMatchButton);
-        filePane.add(Box.createRigidArea(new Dimension(10, 0)));
-        filePane.add(nextMatchButton);
-        filePane.add(Box.createRigidArea(new Dimension(10, 0)));
-        filePane.add(useRegexBox);
+        searchPane = new JPanel();
+        searchPane.setLayout(new BoxLayout(searchPane, BoxLayout.LINE_AXIS));
+        searchPane.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
+        searchPane.add(openButton);
+        searchPane.add(Box.createRigidArea(new Dimension(10, 0)));
+        searchPane.add(saveButton);
+        searchPane.add(Box.createRigidArea(new Dimension(10, 0)));
+        searchPane.add(searchField);
+        searchPane.add(Box.createRigidArea(new Dimension(10, 0)));
+        searchPane.add(searchButton);
+        searchPane.add(Box.createRigidArea(new Dimension(10, 0)));
+        searchPane.add(prevMatchButton);
+        searchPane.add(Box.createRigidArea(new Dimension(10, 0)));
+        searchPane.add(nextMatchButton);
+        searchPane.add(Box.createRigidArea(new Dimension(10, 0)));
+        searchPane.add(useRegexBox);
 
-        JPanel textPane = new JPanel();
+        textPane = new JPanel();
         textPane.setLayout(new BorderLayout());
         textPane.setBorder(BorderFactory.createEmptyBorder(0, 10, 10, 10));
         textPane.add(scrollableTextArea);
+    }
 
-
+    private void initMenuBarComponents() {
         JMenuBar menuBar = new JMenuBar();
         setJMenuBar(menuBar);
 
@@ -192,10 +175,10 @@ public class TextEditor extends JFrame {
         JMenuItem openMenuItem = new JMenuItem("Open");
         openMenuItem.setMnemonic(KeyEvent.VK_O);
         openMenuItem.addActionListener(event -> {
-            int returnValue = jfc.showOpenDialog(null);
+            int returnValue = fileChooser.showOpenDialog(null);
             if (returnValue == JFileChooser.APPROVE_OPTION) {
                 try {
-                    String dataFromFile = new String(Files.readAllBytes(Paths.get(jfc.getSelectedFile().getAbsolutePath())));
+                    String dataFromFile = new String(Files.readAllBytes(Paths.get(fileChooser.getSelectedFile().getAbsolutePath())));
                     textArea.setText(dataFromFile);
                 } catch (IOException ioException) {
                     System.out.println("Error: " + ioException.getMessage());
@@ -206,9 +189,9 @@ public class TextEditor extends JFrame {
         JMenuItem saveMenuItem = new JMenuItem("Save");
         saveMenuItem.setMnemonic(KeyEvent.VK_S);
         saveMenuItem.addActionListener(event -> {
-            int returnValue = jfc.showSaveDialog(null);
+            int returnValue = fileChooser.showSaveDialog(null);
             if (returnValue == JFileChooser.APPROVE_OPTION) {
-                String filePath = jfc.getSelectedFile().getAbsolutePath();
+                String filePath = fileChooser.getSelectedFile().getAbsolutePath();
                 if (!".txt".equals(filePath.substring(filePath.length() - 4))) {
                     filePath += ".txt";
                 }
@@ -272,10 +255,43 @@ public class TextEditor extends JFrame {
 
         menuBar.add(fileMenu);
         menuBar.add(searchMenu);
+    }
 
+    private class TextFinder extends SwingWorker<Object, Object> {
 
-        add(filePane, BorderLayout.PAGE_START);
-        add(textPane, BorderLayout.CENTER);
+        @Override
+        protected Object doInBackground() {
+            searchText = searchField.getText();
+            if (!"".equals(searchText)) {
+                if (isTextChanged) {
+                    text = textArea.getText();
+                    if (useRegex) {
+                        Pattern pattern = Pattern.compile(searchText);
+                        Matcher matcher = pattern.matcher(text);
+                        while (matcher.find()) {
+                            searchResultIndexes.add(matcher.start());
+                            searchResultLength.add(matcher.end() - matcher.start());
+                        }
+                    } else {
+                        int occurrenceIndex = text.indexOf(searchText);
+                        int indexForSubString = occurrenceIndex;
+                        while (indexForSubString != -1) {
+                            searchResultIndexes.add(occurrenceIndex);
+                            searchResultLength.add(searchText.length());
+                            String searchSubString = text.substring(occurrenceIndex + searchText.length());
+                            indexForSubString = searchSubString.indexOf(searchText);
+                            occurrenceIndex = indexForSubString + text.length() - searchSubString.length();
+                        }
+                    }
+                    isTextChanged = false;
+                }
+                if (!searchResultIndexes.isEmpty()) {
+                    iterator = 0;
+                    selectFoundText(textArea);
+                }
+            }
+            return null;
+        }
     }
 
     private class MyDocumentListener implements DocumentListener {
