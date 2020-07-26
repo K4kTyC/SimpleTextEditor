@@ -11,6 +11,7 @@ import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.nio.file.Files;
+import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.List;
@@ -73,36 +74,11 @@ public class TextEditor extends JFrame {
 
         openButton = new JButton(new ImageIcon("res/icons/openIcon.png"));
         openButton.setPreferredSize(new Dimension(38, 38));
-        openButton.addActionListener(event -> {
-            int returnValue = fileChooser.showOpenDialog(null);
-            if (returnValue == JFileChooser.APPROVE_OPTION) {
-                try {
-                    String dataFromFile = new String(Files.readAllBytes(Paths.get(fileChooser.getSelectedFile().getAbsolutePath())));
-                    textArea.setText(dataFromFile);
-                } catch (IOException ioException) {
-                    System.out.println("Error: " + ioException.getMessage());
-                }
-            }
-        });
+        openButton.addActionListener(event -> fillTextAreaFromFile());
 
         saveButton = new JButton(new ImageIcon("res/icons/saveIcon.png"));
         saveButton.setPreferredSize(new Dimension(38, 38));
-        saveButton.addActionListener(event -> {
-            int returnValue = fileChooser.showSaveDialog(null);
-            if (returnValue == JFileChooser.APPROVE_OPTION) {
-                String filePath = fileChooser.getSelectedFile().getAbsolutePath();
-                if (!".txt".equals(filePath.substring(filePath.length() - 4))) {
-                    filePath += ".txt";
-                }
-                File targetFile = new File(filePath);
-                String dataToFile = textArea.getText();
-                try (FileWriter writer = new FileWriter(targetFile)) {
-                    writer.write(dataToFile);
-                } catch (IOException ioException) {
-                    System.out.println("Error: " + ioException.getMessage());
-                }
-            }
-        });
+        saveButton.addActionListener(event -> saveTextAreaToFile());
 
         searchField = new JTextField();
         searchField.setFont(font.deriveFont(18f));
@@ -172,36 +148,11 @@ public class TextEditor extends JFrame {
 
         JMenuItem openMenuItem = new JMenuItem("Open");
         openMenuItem.setMnemonic(KeyEvent.VK_O);
-        openMenuItem.addActionListener(event -> {
-            int returnValue = fileChooser.showOpenDialog(null);
-            if (returnValue == JFileChooser.APPROVE_OPTION) {
-                try {
-                    String dataFromFile = new String(Files.readAllBytes(Paths.get(fileChooser.getSelectedFile().getAbsolutePath())));
-                    textArea.setText(dataFromFile);
-                } catch (IOException ioException) {
-                    System.out.println("Error: " + ioException.getMessage());
-                }
-            }
-        });
+        openMenuItem.addActionListener(event -> fillTextAreaFromFile());
 
         JMenuItem saveMenuItem = new JMenuItem("Save");
         saveMenuItem.setMnemonic(KeyEvent.VK_S);
-        saveMenuItem.addActionListener(event -> {
-            int returnValue = fileChooser.showSaveDialog(null);
-            if (returnValue == JFileChooser.APPROVE_OPTION) {
-                String filePath = fileChooser.getSelectedFile().getAbsolutePath();
-                if (!".txt".equals(filePath.substring(filePath.length() - 4))) {
-                    filePath += ".txt";
-                }
-                File targetFile = new File(filePath);
-                String dataToFile = textArea.getText();
-                try (FileWriter writer = new FileWriter(targetFile)) {
-                    writer.write(dataToFile);
-                } catch (IOException ioException) {
-                    System.out.println("Error: " + ioException.getMessage());
-                }
-            }
-        });
+        saveMenuItem.addActionListener(event -> saveTextAreaToFile());
 
         JMenuItem exitMenuItem = new JMenuItem("Exit");
         exitMenuItem.setMnemonic(KeyEvent.VK_X);
@@ -253,6 +204,52 @@ public class TextEditor extends JFrame {
 
         menuBar.add(fileMenu);
         menuBar.add(searchMenu);
+    }
+
+    private void fillTextAreaFromFile () {
+        int returnValue = fileChooser.showOpenDialog(null);
+        if (returnValue == JFileChooser.APPROVE_OPTION) {
+            try {
+                Path chosenFile = Paths.get(fileChooser.getSelectedFile().getAbsolutePath());
+                String dataFromFile = new String(Files.readAllBytes(chosenFile));
+                textArea.setText(dataFromFile);
+            } catch (IOException ioException) {
+                System.out.println("Error: " + ioException.getMessage());
+            }
+        }
+    }
+
+    private void saveTextAreaToFile() {
+        int returnValue = fileChooser.showSaveDialog(null);
+        if (returnValue == JFileChooser.APPROVE_OPTION) {
+            String filePath = fileChooser.getSelectedFile().getAbsolutePath();
+            if (!".txt".equals(filePath.substring(filePath.length() - 4))) {
+                filePath += ".txt";
+            }
+            File targetFile = new File(filePath);
+            String dataToFile = textArea.getText();
+            try (FileWriter writer = new FileWriter(targetFile)) {
+                writer.write(dataToFile);
+            } catch (IOException ioException) {
+                System.out.println("Error: " + ioException.getMessage());
+            }
+        }
+    }
+
+    private void updateCheckbox() {
+        useRegex = !useRegex;
+        isTextChanged = true;
+        searchResultIndexes.clear();
+        searchResultLength.clear();
+    }
+
+    private void selectFoundText(JTextArea textArea) {
+        int startIndex = searchResultIndexes.get(iterator);
+        int foundTextLength = searchResultLength.get(iterator);
+
+        textArea.setCaretPosition(startIndex + foundTextLength);
+        textArea.select(startIndex, startIndex + foundTextLength);
+        textArea.grabFocus();
     }
 
     private class TextFinder extends SwingWorker<Object, Object> {
@@ -311,21 +308,5 @@ public class TextEditor extends JFrame {
         @Override
         public void changedUpdate(DocumentEvent documentEvent) {
         }
-    }
-
-    private void updateCheckbox() {
-        useRegex = !useRegex;
-        isTextChanged = true;
-        searchResultIndexes.clear();
-        searchResultLength.clear();
-    }
-
-    private void selectFoundText(JTextArea textArea) {
-        int startIndex = searchResultIndexes.get(iterator);
-        int foundTextLength = searchResultLength.get(iterator);
-
-        textArea.setCaretPosition(startIndex + foundTextLength);
-        textArea.select(startIndex, startIndex + foundTextLength);
-        textArea.grabFocus();
     }
 }
