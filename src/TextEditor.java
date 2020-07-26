@@ -15,6 +15,7 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.NoSuchElementException;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -33,11 +34,11 @@ public class TextEditor extends JFrame {
     private JPanel searchPane;
     private JPanel textPane;
 
+    private boolean useRegex = false;
     private boolean isTextChanged = false;
     private final List<Integer> searchResultIndexes = new ArrayList<>();
     private final List<Integer> searchResultLength = new ArrayList<>();
-    private int iterator = 0;
-    private boolean useRegex = false;
+    private final CircleIterator iterator = new CircleIterator();
 
     public TextEditor() {
         super();
@@ -92,10 +93,7 @@ public class TextEditor extends JFrame {
         prevMatchButton.setPreferredSize(new Dimension(38, 38));
         prevMatchButton.addActionListener(event -> {
             if (!searchResultIndexes.isEmpty()) {
-                if (iterator - 1 < 0) {
-                    iterator = searchResultIndexes.size();
-                }
-                iterator--;
+                iterator.previous();
                 selectFoundText(textArea);
             }
         });
@@ -104,10 +102,7 @@ public class TextEditor extends JFrame {
         nextMatchButton.setPreferredSize(new Dimension(38, 38));
         nextMatchButton.addActionListener(event -> {
             if (!searchResultIndexes.isEmpty()) {
-                if (iterator + 1 == searchResultIndexes.size()) {
-                    iterator = -1;
-                }
-                iterator++;
+                iterator.next();
                 selectFoundText(textArea);
             }
         });
@@ -172,10 +167,7 @@ public class TextEditor extends JFrame {
         JMenuItem prevMatchMenuItem = new JMenuItem("Previous match");
         prevMatchMenuItem.addActionListener(event -> {
             if (!searchResultIndexes.isEmpty()) {
-                if (iterator - 1 < 0) {
-                    iterator = searchResultIndexes.size();
-                }
-                iterator--;
+                iterator.previous();
                 selectFoundText(textArea);
             }
         });
@@ -183,10 +175,7 @@ public class TextEditor extends JFrame {
         JMenuItem nextMatchMenuItem = new JMenuItem("Next match");
         nextMatchMenuItem.addActionListener(event -> {
             if (!searchResultIndexes.isEmpty()) {
-                if (iterator + 1 == searchResultIndexes.size()) {
-                    iterator = -1;
-                }
-                iterator++;
+                iterator.next();
                 selectFoundText(textArea);
             }
         });
@@ -238,17 +227,21 @@ public class TextEditor extends JFrame {
 
     private void updateCheckbox() {
         useRegex = !useRegex;
+        textChanged();
+    }
+
+    private void textChanged() {
         isTextChanged = true;
         searchResultIndexes.clear();
         searchResultLength.clear();
     }
 
     private void selectFoundText(JTextArea textArea) {
-        int startIndex = searchResultIndexes.get(iterator);
-        int foundTextLength = searchResultLength.get(iterator);
+        int startIndex = iterator.getIndex();
+        int selectionLength = iterator.getLength();
 
-        textArea.setCaretPosition(startIndex + foundTextLength);
-        textArea.select(startIndex, startIndex + foundTextLength);
+        textArea.setCaretPosition(startIndex + selectionLength);
+        textArea.select(startIndex, startIndex + selectionLength);
         textArea.grabFocus();
     }
 
@@ -281,7 +274,7 @@ public class TextEditor extends JFrame {
                     isTextChanged = false;
                 }
                 if (!searchResultIndexes.isEmpty()) {
-                    iterator = 0;
+                    iterator.restore();
                     selectFoundText(textArea);
                 }
             }
@@ -289,20 +282,53 @@ public class TextEditor extends JFrame {
         }
     }
 
+    private class CircleIterator {
+
+        private int index;
+
+        public int getIndex() {
+            if (!searchResultIndexes.isEmpty()) {
+                return searchResultIndexes.get(index);
+            }
+            throw new NoSuchElementException("List with indexes is empty");
+        }
+
+        public int getLength() {
+            if (!searchResultLength.isEmpty()) {
+                return searchResultLength.get(index);
+            }
+            throw new NoSuchElementException("List with lengths is empty");
+        }
+
+        public void restore() {
+            index = 0;
+        }
+
+        public void previous() {
+            if (index - 1 < 0) {
+                index = searchResultIndexes.size();
+            }
+            index--;
+        }
+
+        public void next() {
+            if (index + 1 >= searchResultIndexes.size()) {
+                index = -1;
+            }
+            index++;
+        }
+    }
+
     private class MyDocumentListener implements DocumentListener {
 
         @Override
         public void insertUpdate(DocumentEvent documentEvent) {
-            isTextChanged = true;
-            searchResultIndexes.clear();
-            searchResultLength.clear();
+            textChanged();
         }
 
         @Override
         public void removeUpdate(DocumentEvent documentEvent) {
-            isTextChanged = true;
-            searchResultIndexes.clear();
-            searchResultLength.clear();
+            textChanged();
         }
 
         @Override
