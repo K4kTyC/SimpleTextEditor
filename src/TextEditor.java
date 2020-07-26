@@ -33,8 +33,6 @@ public class TextEditor extends JFrame {
     private JPanel textPane;
 
     private boolean isTextChanged = false;
-    private String text;
-    private String searchText;
     private final List<Integer> searchResultIndexes = new ArrayList<>();
     private final List<Integer> searchResultLength = new ArrayList<>();
     private int iterator = 0;
@@ -261,10 +259,10 @@ public class TextEditor extends JFrame {
 
         @Override
         protected Object doInBackground() {
-            searchText = searchField.getText();
+            String searchText = searchField.getText();
             if (!"".equals(searchText)) {
                 if (isTextChanged) {
-                    text = textArea.getText();
+                    String text = textArea.getText();
                     if (useRegex) {
                         Pattern pattern = Pattern.compile(searchText);
                         Matcher matcher = pattern.matcher(text);
