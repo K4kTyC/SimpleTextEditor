@@ -36,9 +36,18 @@ public class TextEditor extends JFrame {
 
     private boolean useRegex = false;
     private boolean isTextChanged = false;
-    private final List<Integer> searchResultIndexes = new ArrayList<>();
-    private final List<Integer> searchResultLength = new ArrayList<>();
+    private final List<Pair> searchResults = new ArrayList<>();
     private final CircleIterator iterator = new CircleIterator();
+
+    private class Pair {
+        private final int index;
+        private final int length;
+
+        public Pair(int index, int length) {
+            this.index = index;
+            this.length = length;
+        }
+    }
 
     public TextEditor() {
         super();
@@ -92,7 +101,7 @@ public class TextEditor extends JFrame {
         prevMatchButton = new JButton(new ImageIcon("res/icons/prevMatchIcon.png"));
         prevMatchButton.setPreferredSize(new Dimension(38, 38));
         prevMatchButton.addActionListener(event -> {
-            if (!searchResultIndexes.isEmpty()) {
+            if (!searchResults.isEmpty()) {
                 iterator.previous();
                 selectFoundText(textArea);
             }
@@ -101,7 +110,7 @@ public class TextEditor extends JFrame {
         nextMatchButton = new JButton(new ImageIcon("res/icons/nextMatchIcon.png"));
         nextMatchButton.setPreferredSize(new Dimension(38, 38));
         nextMatchButton.addActionListener(event -> {
-            if (!searchResultIndexes.isEmpty()) {
+            if (!searchResults.isEmpty()) {
                 iterator.next();
                 selectFoundText(textArea);
             }
@@ -166,7 +175,7 @@ public class TextEditor extends JFrame {
 
         JMenuItem prevMatchMenuItem = new JMenuItem("Previous match");
         prevMatchMenuItem.addActionListener(event -> {
-            if (!searchResultIndexes.isEmpty()) {
+            if (!searchResults.isEmpty()) {
                 iterator.previous();
                 selectFoundText(textArea);
             }
@@ -174,7 +183,7 @@ public class TextEditor extends JFrame {
 
         JMenuItem nextMatchMenuItem = new JMenuItem("Next match");
         nextMatchMenuItem.addActionListener(event -> {
-            if (!searchResultIndexes.isEmpty()) {
+            if (!searchResults.isEmpty()) {
                 iterator.next();
                 selectFoundText(textArea);
             }
@@ -232,8 +241,7 @@ public class TextEditor extends JFrame {
 
     private void textChanged() {
         isTextChanged = true;
-        searchResultIndexes.clear();
-        searchResultLength.clear();
+        searchResults.clear();
     }
 
     private void selectFoundText(JTextArea textArea) {
@@ -257,23 +265,21 @@ public class TextEditor extends JFrame {
                         Pattern pattern = Pattern.compile(searchText);
                         Matcher matcher = pattern.matcher(text);
                         while (matcher.find()) {
-                            searchResultIndexes.add(matcher.start());
-                            searchResultLength.add(matcher.end() - matcher.start());
+                            searchResults.add(new Pair(matcher.start(), matcher.end() - matcher.start()));
                         }
                     } else {
                         int occurrenceIndex = text.indexOf(searchText);
                         int indexForSubString = occurrenceIndex;
                         while (indexForSubString != -1) {
-                            searchResultIndexes.add(occurrenceIndex);
-                            searchResultLength.add(searchText.length());
-                            String searchSubString = text.substring(occurrenceIndex + searchText.length());
-                            indexForSubString = searchSubString.indexOf(searchText);
-                            occurrenceIndex = indexForSubString + text.length() - searchSubString.length();
+                            searchResults.add(new Pair(occurrenceIndex, searchText.length()));
+                            String searchInSubString = text.substring(occurrenceIndex + searchText.length());
+                            indexForSubString = searchInSubString.indexOf(searchText);
+                            occurrenceIndex = indexForSubString + text.length() - searchInSubString.length();
                         }
                     }
                     isTextChanged = false;
                 }
-                if (!searchResultIndexes.isEmpty()) {
+                if (!searchResults.isEmpty()) {
                     iterator.restore();
                     selectFoundText(textArea);
                 }
@@ -284,38 +290,38 @@ public class TextEditor extends JFrame {
 
     private class CircleIterator {
 
-        private int index;
+        private int i;
 
         public int getIndex() {
-            if (!searchResultIndexes.isEmpty()) {
-                return searchResultIndexes.get(index);
+            if (!searchResults.isEmpty()) {
+                return searchResults.get(i).index;
             }
             throw new NoSuchElementException("List with indexes is empty");
         }
 
         public int getLength() {
-            if (!searchResultLength.isEmpty()) {
-                return searchResultLength.get(index);
+            if (!searchResults.isEmpty()) {
+                return searchResults.get(i).length;
             }
             throw new NoSuchElementException("List with lengths is empty");
         }
 
         public void restore() {
-            index = 0;
+            i = 0;
         }
 
         public void previous() {
-            if (index - 1 < 0) {
-                index = searchResultIndexes.size();
+            if (i - 1 < 0) {
+                i = searchResults.size();
             }
-            index--;
+            i--;
         }
 
         public void next() {
-            if (index + 1 >= searchResultIndexes.size()) {
-                index = -1;
+            if (i + 1 >= searchResults.size()) {
+                i = -1;
             }
-            index++;
+            i++;
         }
     }
 
