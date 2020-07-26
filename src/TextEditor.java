@@ -296,14 +296,14 @@ public class TextEditor extends JFrame {
             if (!searchResults.isEmpty()) {
                 return searchResults.get(i).index;
             }
-            throw new NoSuchElementException("List with indexes is empty");
+            throw new NoSuchElementException("List with search results is empty");
         }
 
         public int getLength() {
             if (!searchResults.isEmpty()) {
                 return searchResults.get(i).length;
             }
-            throw new NoSuchElementException("List with lengths is empty");
+            throw new NoSuchElementException("List with search results is empty");
         }
 
         public void restore() {
